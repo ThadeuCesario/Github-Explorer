@@ -8,7 +8,7 @@ import api from '../../services/api';
 
 import logoImg from '../../assets/logo.svg';
 
-import {Title, Form, Repositories} from './styles';
+import {Title, Form, Repositories, Error} from './styles';
 
 /**
  * Sempre que criamos um estado que não é um valor padrão, tipo string, número ou boolean.
@@ -29,6 +29,7 @@ interface Repository{
 
 const Dashboard: React.FC = () => {
   const [newRepo, setNewRepo] = useState('');
+  const [inputError, setInputError] = useState('');
   const [repositories, setRepositories] = useState<Repository[]>([]);
 
   async function handleAddRepository(event: FormEvent<HTMLFormElement>): Promise<void>{
@@ -44,16 +45,26 @@ const Dashboard: React.FC = () => {
 
      event.preventDefault();
 
-     const response = await api.get<Repository>(`repos/${newRepo}`);
+     if(!newRepo){
+      setInputError('Digite o autor/nome do repositório');
+      return;
+     }
 
-     /**
-      * Lembrando que 'response.data' estarão armazenados
-      */
-     const repository = response.data;
+     try{
+       const response = await api.get<Repository>(`repos/${newRepo}`);
 
-     setRepositories([...repositories, repository]);
+       /**
+        * Lembrando que 'response.data' estarão armazenados
+        */
+       const repository = response.data;
 
-     setNewRepo('');
+       setRepositories([...repositories, repository]);
+
+       setNewRepo('');
+       setInputError('');
+     }catch(error){
+       setInputError('Erro na busca por esse repositório.');
+     }
   }
 
   return (
@@ -65,6 +76,18 @@ const Dashboard: React.FC = () => {
         <input value={newRepo} onChange={e => setNewRepo(e.target.value)} type='text' placeholder='Digite o nome do repositório'/>
         <button type="submit">Pesquisar</button>
       </Form>
+
+      {/* Vamos precisar adicionar um erro desde que exista.
+        * Dentro do react conseguimos colocar uma forma de if simplificada.
+        * Em um caso de um if que não necessita de um else, podemos criá-lo
+        * seguindo o formato abaixo.
+        *
+        * Seguindo o modelo:
+        * {inputError && <Error>{inputError}</Error>}
+        * Apenas se o inputError for true, o bloco ao lado será renderizado.
+        */}
+
+      {inputError && <Error>{inputError}</Error>}
 
       <Repositories>
         {repositories.map(repository => (
