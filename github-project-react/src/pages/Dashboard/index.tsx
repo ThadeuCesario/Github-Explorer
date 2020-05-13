@@ -2,54 +2,82 @@
  * FC -> Function Component
  */
 
-import React from 'react';
+import React, {useState, FormEvent} from 'react';
 import {FiChevronRight} from 'react-icons/fi';
+import api from '../../services/api';
 
 import logoImg from '../../assets/logo.svg';
 
 import {Title, Form, Repositories} from './styles';
 
+/**
+ * Sempre que criamos um estado que não é um valor padrão, tipo string, número ou boolean.
+ * Mas sim um valor composto como um array ou objeto, devemos definir o tipo deles.
+ *
+ * Lembre-se que precisamos colocar na tipagem SOMENTE AS INFORMAÇÕES que serão
+ * utilizadas.
+ */
+
+interface Repository{
+  full_name: string;
+  description: string;
+  owner: {
+    login: string;
+    avatar_url: string;
+  }
+}
+
 const Dashboard: React.FC = () => {
+  const [newRepo, setNewRepo] = useState('');
+  const [repositories, setRepositories] = useState<Repository[]>([]);
+
+  async function handleAddRepository(event: FormEvent<HTMLFormElement>): Promise<void>{
+    /**
+     * 1 -> Adição de um novo repositório.
+     * 2 -> Consumir API do github.
+     * 3 -> Salvar novo repositório no estado.
+     *
+     * Veja que passamos como parametro do FormEvent o HTMLFormElement, lembre-se
+     * que precisamos importá-lo lembrando que esse elemento significa o HTML
+     * do form. O FormEvent representa o evento de submit do formulário.
+     */
+
+     event.preventDefault();
+
+     const response = await api.get<Repository>(`repos/${newRepo}`);
+
+     /**
+      * Lembrando que 'response.data' estarão armazenados
+      */
+     const repository = response.data;
+
+     setRepositories([...repositories, repository]);
+
+     setNewRepo('');
+  }
+
   return (
     <React.Fragment>
       <img src={logoImg} alt='Github Explorer' />
       <Title>Explore repositórios no Github</Title>
 
-      <Form>
-        <input type='text' placeholder='Digite o nome do repositório'/>
+      <Form onSubmit={handleAddRepository}>
+        <input value={newRepo} onChange={e => setNewRepo(e.target.value)} type='text' placeholder='Digite o nome do repositório'/>
         <button type="submit">Pesquisar</button>
       </Form>
 
       <Repositories>
-        <a href="teste">
-          <img src="https://avatars2.githubusercontent.com/u/27692953?s=460&u=22d37826877e4d4d044e709d0f32359cb8f71f42&v=4" alt="Thadeu Munhóz Cesário" />
-          <div>
-            <strong>thadeucesario/react-project</strong>
-            <p>Projeto completo em React!</p>
-          </div>
+        {repositories.map(repository => (
+          <a key={repository.full_name} href="teste">
+            <img src={repository.owner.avatar_url} alt={repository.owner.login} />
+            <div>
+              <strong>{repository.full_name}</strong>
+              <p>{repository.description}</p>
+            </div>
 
-          <FiChevronRight size={20} />
-        </a>
-
-        <a href="teste">
-          <img src="https://avatars2.githubusercontent.com/u/27692953?s=460&u=22d37826877e4d4d044e709d0f32359cb8f71f42&v=4" alt="Thadeu Munhóz Cesário" />
-          <div>
-            <strong>thadeucesario/react-project</strong>
-            <p>Projeto completo em React!</p>
-          </div>
-
-          <FiChevronRight size={20} />
-        </a>
-
-        <a href="teste">
-          <img src="https://avatars2.githubusercontent.com/u/27692953?s=460&u=22d37826877e4d4d044e709d0f32359cb8f71f42&v=4" alt="Thadeu Munhóz Cesário" />
-          <div>
-            <strong>thadeucesario/react-project</strong>
-            <p>Projeto completo em React!</p>
-          </div>
-
-          <FiChevronRight size={20} />
-        </a>
+            <FiChevronRight size={20} />
+          </a>
+        ))}
       </Repositories>
     </React.Fragment>
   );
