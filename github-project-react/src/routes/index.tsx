@@ -18,7 +18,7 @@ const Routes: React.FC = () => (
       *  Estamos acessando nossos repositórios da seguinte forma:
       *  http://localhost:3000/repositories/ThadeuCesario/javascript
       * Então precisamos informar para nossa rota que tudo que vem após
-      * repository, é um parametro. Para isso utitilizamos o ':repository+'.
+      * repository, é um parametro. Para isso utilizamos o ':repository+'.
       * Sem o '+' teríamos problemas pois nesse caso em específico temos outra '/'
       * após o primeiro parâmetro ':repository'.
       */}
